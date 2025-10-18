@@ -11,19 +11,12 @@ class SteeringWheel extends StatefulWidget {
 }
 
 class _SteeringWheelState extends State<SteeringWheel> {
-  double _angle = 0.0;             // sudut setir (radian)
-  double _lastTouchAngle = 0.0;    // sudut sentuhan sebelumnya
-  final double maxRad = 480 * math.pi / 180; // ±480° = 960 total
-
-  DateTime _lastSend = DateTime.fromMillisecondsSinceEpoch(0);
+  double _angle = 0.0;
+  double _lastTouchAngle = 0.0;
+  final double maxRad = 480 * math.pi / 180;
 
   void _sendSteer(double normalized) {
-    final now = DateTime.now();
-    // throttle ~30 fps
-    if (now.difference(_lastSend).inMilliseconds > 33) {
-      widget.channel.sink.add("steer:${normalized.toStringAsFixed(3)}");
-      _lastSend = now;
-    }
+    widget.channel.sink.add("steer:${normalized.toStringAsFixed(3)}");
   }
 
   void _onPanStart(DragStartDetails details, Size size) {
@@ -38,25 +31,17 @@ class _SteeringWheelState extends State<SteeringWheel> {
     final dx = pos.dx - center.dx;
     final dy = pos.dy - center.dy;
 
-    // Jika tepat di pusat, abaikan untuk hindari NaN
     if (dx == 0 && dy == 0) return;
-
     final newTouchAngle = math.atan2(dy, dx);
-    if (newTouchAngle.isNaN) return;
 
     double delta = newTouchAngle - _lastTouchAngle;
-
-    // Normalisasi delta ke -π..π agar tidak lompat
     if (delta > math.pi) delta -= 2 * math.pi;
     if (delta < -math.pi) delta += 2 * math.pi;
 
     setState(() {
       _angle += delta;
       _angle = _angle.clamp(-maxRad, maxRad);
-
-      // Normalisasi ke -1.0 .. 1.0 untuk dikirim ke server
-      final normalized = _angle / maxRad;
-      _sendSteer(normalized);
+      _sendSteer(_angle / maxRad);
     });
 
     _lastTouchAngle = newTouchAngle;
@@ -66,14 +51,12 @@ class _SteeringWheelState extends State<SteeringWheel> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Pastikan area persegi untuk wheel
         final side = math.min(constraints.maxWidth, constraints.maxHeight);
 
         return GestureDetector(
           onPanStart: (d) => _onPanStart(d, Size(side, side)),
           onPanUpdate: (d) => _onPanUpdate(d, Size(side, side)),
           onPanEnd: (_) {
-            // Opsional: reset ke tengah saat lepas jari
             setState(() {
               _angle = 0.0;
               widget.channel.sink.add("steer:0.0");
@@ -87,16 +70,36 @@ class _SteeringWheelState extends State<SteeringWheel> {
                 height: side,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.grey.shade300,
-                  border: Border.all(width: 8, color: Colors.black),
-                  boxShadow: const [
-                    BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4)),
+                  border: Border.all(color: Colors.grey.shade400, width: 8), // border silver
+                  gradient: RadialGradient(
+                    colors: [Colors.black, Colors.grey.shade800],
+                    center: Alignment.center,
+                    radius: 0.9,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.6),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                    ),
                   ],
                 ),
-                child: const Center(
-                  child: Text(
-                    "Steering Wheel",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                child: Center(
+                  child: Container(
+                    width: side * 0.3,
+                    height: side * 0.3,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.black87,
+                      border: Border.all(color: Colors.grey.shade500, width: 3),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.directions_car, // logo mobil putih
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
                   ),
                 ),
               ),
