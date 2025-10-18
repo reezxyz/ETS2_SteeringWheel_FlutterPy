@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'steering_wheel.dart';
+import 'controller_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Kunci ke landscape
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
+
   runApp(const MyApp());
 }
 
@@ -11,16 +20,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ganti IP sesuai alamat server Python kamu
+    // Ganti IP ini dengan IP PC tempat server Python berjalan
     final channel = WebSocketChannel.connect(
       Uri.parse("ws://192.168.2.195:8765"),
     );
 
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text("ETS2 Controller")),
-        body: SteeringWheel(channel: channel),
-      ),
+      title: 'ETS2 Controller',
+      theme: ThemeData(colorSchemeSeed: Colors.blue, useMaterial3: true),
+      home: ControllerPage(channel: channel),
     );
   }
 }
