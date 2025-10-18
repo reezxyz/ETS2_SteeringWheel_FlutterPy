@@ -41,7 +41,10 @@ class _SteeringWheelState extends State<SteeringWheel> {
     setState(() {
       _angle += delta;
       _angle = _angle.clamp(-maxRad, maxRad);
-      _sendSteer(_angle / maxRad);
+
+      // Normalisasi ke -1.0 .. 1.0
+      final normalized = _angle / maxRad;
+      widget.channel.sink.add("steer:${normalized.toStringAsFixed(5)}");
     });
 
     _lastTouchAngle = newTouchAngle;
