@@ -1,34 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'websocket_manager.dart';
 import 'controller_page.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
+  final wsManager = WebSocketManager("ws://192.168.2.195:8765"); // ganti IP sesuai PC
+  wsManager.connect();
 
-  // Kunci ke landscape
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-  ]);
-
-  runApp(const MyApp());
+  runApp(MyApp(wsManager: wsManager));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final WebSocketManager wsManager;
+  const MyApp({super.key, required this.wsManager});
 
   @override
   Widget build(BuildContext context) {
-    // Ganti IP ini dengan IP PC tempat server Python berjalan
-    final channel = WebSocketChannel.connect(
-      Uri.parse("ws://192.168.2.195:8765"),
-    );
-
     return MaterialApp(
       title: 'ETS2 Controller',
-      theme: ThemeData(colorSchemeSeed: Colors.blue, useMaterial3: true),
-      home: ControllerPage(channel: channel),
+      theme: ThemeData.dark(),
+      home: ControllerPage(channel: wsManager.channel!),
     );
   }
 }

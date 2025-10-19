@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -15,8 +16,14 @@ class _SteeringWheelState extends State<SteeringWheel> {
   double _lastTouchAngle = 0.0;
   final double maxRad = 480 * math.pi / 180;
 
+  Timer? _throttleTimer;
+
   void _sendSteer(double normalized) {
+    if (_throttleTimer?.isActive ?? false) return;
+
     widget.channel.sink.add("steer:${normalized.toStringAsFixed(3)}");
+
+    _throttleTimer = Timer(const Duration(milliseconds: 20), () {});
   }
 
   void _onPanStart(DragStartDetails details, Size size) {
@@ -41,10 +48,8 @@ class _SteeringWheelState extends State<SteeringWheel> {
     setState(() {
       _angle += delta;
       _angle = _angle.clamp(-maxRad, maxRad);
-
-      // Normalisasi ke -1.0 .. 1.0
       final normalized = _angle / maxRad;
-      widget.channel.sink.add("steer:${normalized.toStringAsFixed(5)}");
+      _sendSteer(normalized);
     });
 
     _lastTouchAngle = newTouchAngle;
@@ -73,7 +78,7 @@ class _SteeringWheelState extends State<SteeringWheel> {
                 height: side,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey.shade400, width: 8), // border silver
+                  border: Border.all(color: Colors.grey.shade400, width: 8),
                   gradient: RadialGradient(
                     colors: [Colors.black, Colors.grey.shade800],
                     center: Alignment.center,
@@ -97,11 +102,7 @@ class _SteeringWheelState extends State<SteeringWheel> {
                       border: Border.all(color: Colors.grey.shade500, width: 3),
                     ),
                     child: const Center(
-                      child: Icon(
-                        Icons.directions_car, // logo mobil putih
-                        color: Colors.white,
-                        size: 32,
-                      ),
+                      child: Icon(Icons.directions_car, color: Colors.white, size: 32),
                     ),
                   ),
                 ),
