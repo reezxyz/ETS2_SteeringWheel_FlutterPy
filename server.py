@@ -5,45 +5,72 @@ import pyvjoy
 j = pyvjoy.VJoyDevice(1)
 
 def clamp(x, lo, hi):
-  return max(lo, min(hi, x))
+    return max(lo, min(hi, x))
+
+async def press_and_release(button_id, delay_ms=100):
+    j.set_button(button_id, 1)
+    await asyncio.sleep(delay_ms / 1000)
+    j.set_button(button_id, 0)
+
+async def handle_message(message: str):
+    if ":" not in message:
+        return
+
+    control, s_val = message.split(":", 1)
+
+    if control == "steer":
+        try:
+            val = float(s_val)
+            val = clamp(val, -1.0, 1.0)
+            scaled = int((val + 1.0) / 2.0 * 32767)
+            j.set_axis(pyvjoy.HID_USAGE_X, scaled)
+            print(f"STEER {val:.5f} → {scaled}")
+        except ValueError:
+            pass
+
+    elif control == "gas":
+        try:
+            val = float(s_val)
+            val = clamp(val, 0.0, 1.0)
+            scaled = int(val * 32767)
+            j.set_axis(pyvjoy.HID_USAGE_Y, scaled)
+            print(f"GAS   {val:.5f} → {scaled}")
+        except ValueError:
+            pass
+
+    elif control == "brake":
+        try:
+            val = float(s_val)
+            val = clamp(val, 0.0, 1.0)
+            scaled = int(val * 32767)
+            j.set_axis(pyvjoy.HID_USAGE_Z, scaled)
+            print(f"BRAKE {val:.5f} → {scaled}")
+        except ValueError:
+            pass
+
+    elif control == "signal":
+        if s_val == "left":
+            await press_and_release(1)
+            print("SIGNAL LEFT")
+        elif s_val == "right":
+            await press_and_release(2)
+            print("SIGNAL RIGHT")
+        elif s_val == "hazard":
+            await press_and_release(1)
+            await press_and_release(2)
+            print("SIGNAL HAZARD")
 
 async def handler(websocket):
     print("Client connected")
     try:
         async for message in websocket:
-            # Format message: "steer:<val>", "gas:<val>", "brake:<val>"
-            # steer: -1.0..1.0; gas/brake: 0.0..1.0
-            if ":" not in message:
-                continue
-
-            control, s_val = message.split(":")
-            try:
-                val = float(s_val)
-            except:
-                continue
-
-            if control == "steer":
-                val = clamp(val, -1.0, 1.0)
-                scaled = int((val + 1.0) / 2.0 * 32767)
-                j.set_axis(pyvjoy.HID_USAGE_X, scaled)
-                print(f"STEER {val:.3f} -> {scaled}")
-            elif control == "gas":
-                val = clamp(val, 0.0, 1.0)
-                scaled = int(val * 32767)
-                j.set_axis(pyvjoy.HID_USAGE_Y, scaled)
-                print(f"GAS   {val:.3f} -> {scaled}")
-            elif control == "brake":
-                val = clamp(val, 0.0, 1.0)
-                scaled = int(val * 32767)
-                j.set_axis(pyvjoy.HID_USAGE_Z, scaled)
-                print(f"BRAKE {val:.3f} -> {scaled}")
+            await handle_message(message)
     except Exception as e:
         print("Error:", e)
     finally:
         print("Client disconnected")
 
 async def main():
-    # Ganti host menjadi IP PC jika perlu, atau tetap 0.0.0.0 untuk semua interface
     async with websockets.serve(handler, "0.0.0.0", 8765, ping_interval=None, ping_timeout=None):
         print("Server running on ws://0.0.0.0:8765")
         await asyncio.Future()
