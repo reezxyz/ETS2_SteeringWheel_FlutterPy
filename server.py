@@ -1,8 +1,13 @@
 import asyncio
 import websockets
 import pyvjoy
+import pyautogui
+from pynput.mouse import Controller
+
 
 j = pyvjoy.VJoyDevice(1)
+mouse = Controller()
+
 
 def clamp(x, lo, hi):
     return max(lo, min(hi, x))
@@ -59,6 +64,21 @@ async def handle_message(message: str):
             await press_and_release(1)
             await press_and_release(2)
             print("SIGNAL HAZARD")
+
+    elif control == "camera":
+        dx_str, dy_str = s_val.split(",")
+        dx = float(dx_str)
+        dy = float(dy_str)
+
+        cam_x = int(((dx * 10 + 1.0) / 2.0) * 32767)
+
+        cam_y = int(((dx * 10 + 1.0) / 2.0) * 32767)
+
+
+        j.set_axis(pyvjoy.HID_USAGE_RX, cam_x)  # horizontal
+        j.set_axis(pyvjoy.HID_USAGE_RZ, cam_y)  # vertical
+
+
 
 async def handler(websocket):
     print("Client connected")

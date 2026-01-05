@@ -12,6 +12,9 @@ class SteeringWheel extends StatefulWidget {
 }
 
 class _SteeringWheelState extends State<SteeringWheel> {
+  Timer? _autoCenterTimer;
+  final double _autoCenterSpeed = 6.0; // makin besar = makin cepat balik
+
   double _angle = 0.0;
   double _lastTouchAngle = 0.0;
   final double maxRad = 480 * math.pi / 180;
@@ -27,6 +30,7 @@ class _SteeringWheelState extends State<SteeringWheel> {
   }
 
   void _onPanStart(DragStartDetails details, Size size) {
+    _autoCenterTimer?.cancel();
     final center = Offset(size.width / 2, size.height / 2);
     final pos = details.localPosition;
     _lastTouchAngle = math.atan2(pos.dy - center.dy, pos.dx - center.dx);
@@ -55,6 +59,33 @@ class _SteeringWheelState extends State<SteeringWheel> {
     _lastTouchAngle = newTouchAngle;
   }
 
+  void _startAutoCenter() {
+    _autoCenterTimer?.cancel();
+
+    _autoCenterTimer = Timer.periodic(
+      const Duration(milliseconds: 16), // ~60 FPS
+      (timer) {
+        setState(() {
+          // easing menuju 0
+          _angle += (0.0 - _angle) * _autoCenterSpeed * 0.016;
+
+          // kirim ke Python
+          final normalized = _angle / maxRad;
+          _sendSteer(normalized);
+
+          // stop jika sudah dekat tengah
+          if (_angle.abs() < 0.001) {
+            _angle = 0.0;
+            widget.channel.sink.add("steer:0.0");
+            timer.cancel();
+          }
+        });
+      },
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -65,10 +96,7 @@ class _SteeringWheelState extends State<SteeringWheel> {
           onPanStart: (d) => _onPanStart(d, Size(side, side)),
           onPanUpdate: (d) => _onPanUpdate(d, Size(side, side)),
           onPanEnd: (_) {
-            setState(() {
-              _angle = 0.0;
-              widget.channel.sink.add("steer:0.0");
-            });
+            _startAutoCenter();
           },
           child: Center(
             child: Transform.rotate(

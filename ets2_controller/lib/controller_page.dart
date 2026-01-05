@@ -3,6 +3,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'steering_wheel.dart';
 import 'pedal_controls.dart';
 import 'signal_controls.dart';
+import 'camera_touchpad.dart';
 
 class ControllerPage extends StatelessWidget {
   final WebSocketChannel channel;
@@ -15,7 +16,7 @@ class ControllerPage extends StatelessWidget {
       body: SafeArea(
         child: Row(
           children: [
-            // Steering wheel di kiri, mentok kiri
+            // Steering wheel di kiri
             Expanded(
               flex: 3,
               child: Align(
@@ -30,7 +31,7 @@ class ControllerPage extends StatelessWidget {
               ),
             ),
 
-            // Signal + Pedal controls di kanan
+            // Signal + Camera + Pedals di kanan
             Expanded(
               flex: 1,
               child: Padding(
@@ -40,7 +41,27 @@ class ControllerPage extends StatelessWidget {
                     const SizedBox(height: 8),
                     SignalControls(channel: channel),
                     const SizedBox(height: 24),
-                    Expanded(child: PedalControls(channel: channel)),
+
+                    // Row agar CameraTouchpad di kiri, PedalControls di kanan
+                    Expanded(
+                      child: Row(
+                        children: [
+                          // Touchpad ambil 1 bagian
+                          Expanded(
+                            flex: 1,
+                            child: Center(
+                              child: CameraTouchpad(channel: channel),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          // Pedals ambil 2 bagian
+                          Expanded(
+                            flex: 2,
+                            child: PedalControls(channel: channel),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

@@ -3,7 +3,7 @@ import 'websocket_manager.dart';
 import 'controller_page.dart';
 
 void main() {
-  final wsManager = WebSocketManager("ws://192.168.2.195:8765"); // ganti IP sesuai PC
+  final wsManager = WebSocketManager("ws://192.168.2.199:8765"); // ganti IP sesuai PC
   wsManager.connect();
 
   runApp(MyApp(wsManager: wsManager));
