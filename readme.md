@@ -261,7 +261,7 @@ Some things I want to improve in future versions:
 
 ## Download
 
-Check the [Releases](/releases) page for the latest Android APK and Windows Server build.
+Check the [Releases](../../releases) page for the latest Android APK and Windows Server build.
 
 ## License
 
