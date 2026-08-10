@@ -1,8 +1,10 @@
 import 'dart:async';
+
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class WebSocketManager {
   final String url;
+
   WebSocketChannel? _channel;
   bool _isConnecting = false;
 
@@ -12,36 +14,48 @@ class WebSocketManager {
 
   WebSocketChannel? get channel => _channel;
 
-  void connect() {
+  Future<void> connect() async {
     if (_isConnecting) return;
+
     _isConnecting = true;
 
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(url));
-      print("Connected to $url");
-
-      _channel!.stream.listen(
-        (event) {
-          // handle incoming if needed
-        },
-        onDone: _scheduleReconnect,
-        onError: (e) {
-          print("WebSocket error: $e");
-          _scheduleReconnect();
-        },
+      _channel = WebSocketChannel.connect(
+        Uri.parse(url),
       );
+
+      // Tunggu sampai WebSocket benar-benar siap.
+      await _channel!.ready;
+
+      print("Connected to $url");
     } catch (e) {
       print("Connection failed: $e");
-      _scheduleReconnect();
+      _channel = null;
+      rethrow;
     } finally {
       _isConnecting = false;
     }
+
+    _listen();
   }
 
-  void _scheduleReconnect() {
-    if (_isConnecting) return;
-    print("Reconnecting in ${_reconnectDelay.inSeconds}s...");
-    Future.delayed(_reconnectDelay, connect);
+  void _listen() {
+    final channel = _channel;
+
+    if (channel == null) return;
+
+    channel.stream.listen(
+      (event) {
+        // Server tidak perlu mengirim data untuk kontrol sekarang.
+      },
+      onDone: () {
+        print("WebSocket disconnected.");
+      },
+      onError: (e) {
+        print("WebSocket error: $e");
+      },
+      cancelOnError: false,
+    );
   }
 
   void send(String data) {
@@ -53,6 +67,10 @@ class WebSocketManager {
   }
 
   void dispose() {
-    _channel?.sink.close();
+    try {
+      _channel?.sink.close();
+    } catch (_) {}
+
+    _channel = null;
   }
 }

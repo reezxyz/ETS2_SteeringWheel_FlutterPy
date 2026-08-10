@@ -3,7 +3,6 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'steering_wheel.dart';
 import 'pedal_controls.dart';
 import 'signal_controls.dart';
-import 'camera_touchpad.dart';
 
 class ControllerPage extends StatelessWidget {
   final WebSocketChannel channel;
@@ -44,22 +43,8 @@ class ControllerPage extends StatelessWidget {
 
                     // Row agar CameraTouchpad di kiri, PedalControls di kanan
                     Expanded(
-                      child: Row(
-                        children: [
-                          // Touchpad ambil 1 bagian
-                          Expanded(
-                            flex: 1,
-                            child: Center(
-                              child: CameraTouchpad(channel: channel),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          // Pedals ambil 2 bagian
-                          Expanded(
-                            flex: 2,
-                            child: PedalControls(channel: channel),
-                          ),
-                        ],
+                      child: Center(
+                        child: PedalControls(channel: channel),
                       ),
                     ),
                   ],

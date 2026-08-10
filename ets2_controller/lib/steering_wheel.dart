@@ -13,11 +13,11 @@ class SteeringWheel extends StatefulWidget {
 
 class _SteeringWheelState extends State<SteeringWheel> {
   Timer? _autoCenterTimer;
-  final double _autoCenterSpeed = 6.0; // makin besar = makin cepat balik
+  final double _autoCenterSpeed = 1.0; // makin besar = makin cepat balik
 
   double _angle = 0.0;
   double _lastTouchAngle = 0.0;
-  final double maxRad = 480 * math.pi / 180;
+  final double maxRad = 600 * math.pi / 180;
 
   Timer? _throttleTimer;
 
