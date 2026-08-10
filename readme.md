@@ -55,7 +55,7 @@ The Windows server receives the input and maps it to vJoy, which ETS2 can then u
 ### Windows
 
 - Windows PC
-- vJoy
+- [vJoy](https://sourceforge.net/projects/vjoystick/)
 - ETS2 Controller Server
 - Euro Truck Simulator 2
 
@@ -63,7 +63,9 @@ The Windows server receives the input and maps it to vJoy, which ETS2 can then u
 
 ### 1. Install vJoy
 
-Install vJoy on your Windows PC and make sure the virtual controller is working correctly.
+Download and install [vJoy from SourceForge](https://sourceforge.net/projects/vjoystick/).
+
+After installing vJoy, make sure the virtual controller is enabled and working correctly.
 
 The server uses vJoy to send the phone's input to ETS2.
 
@@ -259,7 +261,7 @@ Some things I want to improve in future versions:
 
 ## Download
 
-Check the [Releases](../../releases) page for the latest Android APK and Windows Server build.
+Check the [Releases](/releases) page for the latest Android APK and Windows Server build.
 
 ## License
 
